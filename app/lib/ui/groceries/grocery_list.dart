@@ -11,7 +11,8 @@ class GroceryList extends StatefulWidget {
 }
 
 class _GroceryListState extends State<GroceryList> {
-
+  String searchText = '';
+  Screen currentScreen = Screen.home;
   void onCreate() async {
     // Navigate to the form screen using the Navigator push
     Grocery? newGrocery = await Navigator.push<Grocery>(
@@ -28,8 +29,30 @@ class _GroceryListState extends State<GroceryList> {
   @override
   Widget build(BuildContext context) {
     Widget content = const Center(child: Text('No items added yet.'));
-
-    if (dummyGroceryItems.isNotEmpty) {
+    int currentIndex = 0;
+    if (currentIndex == 1) {
+      final filterList = dummyGroceryItems
+          .where((g) => g.name.toLowerCase().contains(searchText.toLowerCase()))
+          .toList();
+      content = Column(
+        children: [
+          TextField(
+            decoration: const InputDecoration(label: Text('Search')),
+            onChanged: (value) => setState(() {
+              searchText = value;
+            }),
+          ),
+          Container(width: double.infinity, height: 1, color: Colors.black),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filterList.length,
+              itemBuilder: (context, index) =>
+                  GroceryTile(grocery: filterList[index]),
+            ),
+          ),
+        ],
+      );
+    } else {
       //  Display groceries with an Item builder and  LIst Tile
       content = ListView.builder(
         itemCount: dummyGroceryItems.length,
@@ -44,9 +67,19 @@ class _GroceryListState extends State<GroceryList> {
         actions: [IconButton(onPressed: onCreate, icon: const Icon(Icons.add))],
       ),
       body: content,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) => setState(() => currentIndex = index),
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.shop), label: 'Groceries'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+        ],
+      ),
     );
   }
 }
+
+enum Screen { home, search }
 
 class GroceryTile extends StatelessWidget {
   const GroceryTile({super.key, required this.grocery});
